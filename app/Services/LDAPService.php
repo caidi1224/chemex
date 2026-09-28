@@ -34,8 +34,8 @@ class LDAPService
             if ($mode == 'rewrite') {
                 Department::truncate();
             }
-            $ous = Adldap::search()->ous()->get();
-            $ous = json_decode($ous, true);
+            // 修复：AD 单次搜索默认最多返回 1000 条，使用分页取回全部结果
+            $ous = json_decode(json_encode(Adldap::search()->ous()->paginate()->getResults()), true);
             // 遍历所有的OU
             foreach ($ous as $ou) {
                 // 单个OU的名字
@@ -117,8 +117,10 @@ class LDAPService
                 User::truncate();
             }
 
-            $users = Adldap::search()->users()->get();
-            $users = json_decode($users, true);
+            // 修复：AD 单次搜索默认最多返回 1000 条，导致第 1000 名之后的用户（例如 Nisa.Du）被静默漏掉。
+            // 使用分页查询把全部用户拉取回来（paginate() 内部使用服务器分页控件取完所有页，
+            // getResults() 返回完整结果集），再转成与原来一致的数组结构。
+            $users = json_decode(json_encode(Adldap::search()->users()->paginate()->getResults()), true);
             foreach ($users as $user) {
                 $user_account = $user['samaccountname'][0];
                 $user_name = $user['cn'][0];
