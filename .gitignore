@@ -14,3 +14,6 @@ yarn-error.log
 composer.lock
 .DS_Store
 .env
+
+# 本地 agent 工作约定，仅保留在本机，不提交到远端仓库
+AGENTS.md
